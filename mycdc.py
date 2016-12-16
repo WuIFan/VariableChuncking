@@ -146,4 +146,4 @@ for i in range(0,10):
 					combine.append(oup)
 		#print combine
 		save=(len(dtail)-len(combine))*1.0/clusternum
-		print len(dtail),"\t",len(combine),"\t","%.4f"%save,"\t",clusternum
+		print len(dtail),"\t",len(combine),"\t","%.4f"%save,"\t",clusternum,"\t",clusternum-len(dtail)+len(combine)
