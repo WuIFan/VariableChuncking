@@ -8,9 +8,9 @@ avsize=1024*4
 minsize=1024
 maxsize=1024*8
 """
-avsize=1024*4
-minsize=1024
-maxsize=1024*32
+avsize=1024*32
+minsize=1024*4
+maxsize=1024*256
 #mod=119870
 mod=1000000000
 basewindow=1
@@ -43,7 +43,7 @@ def rb(a):
 		if tempsize<minsize:
 			#print tempsize,minsize
 			continue
-		if check==0:
+		if check==0:#第一段的fingerprint
 			check=1			
 			r=0
 			j=0
@@ -54,16 +54,16 @@ def rb(a):
 					#print r
 					pass
 		else:
-			r=((r-asc[i-1]*basewindow)*base+asc[i+window-1])%mod
+			r=((r-asc[i-1]*basewindow)*base+asc[i+window-1])%mod#其他段
 			#print (i+window-1),r,asc[i-1]*basewindow,asc[i+window-1]
 			#break			
-		if r % avsize ==0:			
+		if r % avsize ==0:#符合			
 			hashv.append(r)
 			cutpoint.append(i+10)
 			sizeofchunk.append(tempsize)
 			#print tempsize
 			tempsize=0
-		if tempsize>=maxsize:
+		if tempsize>=maxsize:#達tempsize,直接切
 			cutpoint.append(i+10)
 			sizeofchunk.append(tempsize)
 			#print tempsize
@@ -86,11 +86,10 @@ def disktail(a):#算每個chunk的渣渣
 		if m != 0:
 			tail.append(m)
 			num=num+1
-	
 	return tail,num
 
 
-def makefile(a,b):
+def makefile(a,b):#切出檔案 a為要切的檔案,b為cutpoint
 	#print len(b)
 	chunk=0
 	max=len(b)	
@@ -112,22 +111,19 @@ def makefile(a,b):
 for i in range(0,10):
 	with open('big%d.txt'%i) as infile:
 		cp=[]
-		(soc,cp)=rb(infile)
+		(soc,cp)=rb(infile)#soc:sizeofchunk cp:cutpoint
 		dtail=[]
-		(dtail,chunknum)=disktail(soc)
+		(dtail,clusternum)=disktail(soc)#dtail:掉下的tail clusternum:佔用叢集數
 		#print dtail
-
-		
-		
 			
-		infile.seek(0)
+		infile.seek(0)#回到檔案一開始,準備切
 		#print infile.name.split(".")[0]
 		#makefile(infile,soc)
 
 
 		tempsize=0
 		realsize=0
-
+		
 		files=[]
 		combine=[]
 		for i in range(0,len(dtail)):
@@ -149,5 +145,5 @@ for i in range(0,10):
 					oup=str(realsize),files
 					combine.append(oup)
 		#print combine
-		save=(len(dtail)-len(combine))*1.0/chunknum
-		print len(dtail),len(combine),save,chunknum
+		save=(len(dtail)-len(combine))*1.0/clusternum
+		print len(dtail),"\t",len(combine),"\t","%.4f"%save,"\t",clusternum
