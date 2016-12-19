@@ -1,6 +1,7 @@
 #-*-coding:utf-8 -*-
 import hashlib
 import base64
+import os
 
 clustersize=1024*4
 window=48
@@ -140,46 +141,51 @@ def checktail(dtail):
 	save=(len(dtail)-len(combine))*1.0/clusternum
 	print len(dtail),"\t",len(combine),"\t","%.4f"%save,"\t",clusternum,"\t",clusternum-len(dtail)+len(combine)
 
-def hashoutput(a,b,c):	
-	anythesame=0
+def hashoutput(a,b,c):#a:infile b:sizeofchunk c:cutpoint	
 	maker=1
+	new=0
+	f = open(dirname+"/"+a.name.split(".")[0]+"-r."+a.name.split(".")[1], 'w')
 	fo_out = open("hash.txt", 'a+')		
 	for j in range(0,len(b)):
 		found=""		
 		line = a.read(b[j])
-		find=str([hashlib.sha512(line).hexdigest()])
-		#print "find:",find
+		find=str([hashlib.sha512(line).hexdigest()])		
 		fo_out.seek(0)
 		for check in fo_out:
-			checkhash=check.split(",")[1]				
-			#print checkhash
+			checkhash=check.split(",")[1]			
 			if checkhash==find:
-				anythesame=1
+				anythesame=1				
 				find=str([0])
-				found=check.split(",")[0]
-				#print "got!find=",find
-				#print found
-				break				
-		fo_out.seek(0,2)		
+				found=check.split(",")[4]#chunk所在檔案
+				foundstart=check.split(",")[5].split("\n")[0]#所在檔案的起始點
+				break								
+		fo_out.seek(0,2)#回到最下面		
 		if j==0:		
-			fo_out.write(a.name+"-"+str(j)+","+find+",0,"+str(c[j]))
-			if found!="":
-				anythesame=1
-				fo_out.write(","+found)
-				#print "found!"			
+			fo_out.write(a.name+","+find+",0,"+str(c[j]))
+			if found!="":#有找到一樣				
+				fo_out.write(","+found+","+foundstart)				
+			else:
+				fo_out.write(","+a.name.split(".")[0]+"-r."+a.name.split(".")[1]+","+str(new))
+				f.write(line)
+				new=c[j]+1;		
 		else:
-			fo_out.write(a.name+"-"+str(j)+","+find+","+str(c[j-1])+","+str(c[j]))
-			if found!="":
-				fo_out.write(","+found)
-				#print "found!"
-		if anythesame==0:
-			fo_out.write(","+a.name+"-r"+str(0))
-		if anythesame==1 and found=="": 
-			fo_out.write(","+a.name+"-r"+str(maker))
-			maker=maker+1
+			fo_out.write(a.name+","+find+","+str(c[j-1]+1)+","+str(c[j]))
+			if found!="":#有找到一樣				
+				fo_out.write(","+found+","+foundstart)				
+			else:				
+				fo_out.write(","+a.name.split(".")[0]+"-r."+a.name.split(".")[1]+","+str(new+1))#起始點為終點+1
+				f.write(line)
+				new=new+(c[j]-c[j-1])#終點為現在的起始點+當前chunk大小					
 		fo_out.write("\n")				
-	fo_out.close()	
-		
+	fo_out.close()
+	f.close()
+	print a.name,"done!"	
+
+
+dirname="dedup"
+if not os.path.exists(dirname): #確認資料夾是否存在 
+	os.makedirs(dirname)
+
 '''
 for i in range(0,0):
 	with open('big%d.txt'%i) as infile:
@@ -219,7 +225,7 @@ for i in range(0,1):
 		(soc,cp)=rb(infile)#soc:sizeofchunk cp:cutpoint
 		dtail=[]
 		(dtail,clusternum)=disktail(soc)#dtail:掉下的tail clusternum:佔用叢集數
-		checktail(dtail)
+		#checktail(dtail)
 		#print dtail
 			
 		#infile.seek(0)#回到檔案一開始,準備切
@@ -235,7 +241,7 @@ for i in range(0,1):
 		(soc,cp)=rb(infile)#soc:sizeofchunk cp:cutpoint
 		dtail=[]
 		(dtail,clusternum)=disktail(soc)#dtail:掉下的tail clusternum:佔用叢集數
-		checktail(dtail)
+		#checktail(dtail)
 		#print dtail
 			
 		#infile.seek(0)#回到檔案一開始,準備切
@@ -250,7 +256,7 @@ for i in range(0,1):
 		(soc,cp)=rb(infile)#soc:sizeofchunk cp:cutpoint
 		dtail=[]
 		(dtail,clusternum)=disktail(soc)#dtail:掉下的tail clusternum:佔用叢集數
-		checktail(dtail)
+		#checktail(dtail)
 		#print dtail
 
 		#infile.seek(0)#回到檔案一開始,準備切
@@ -266,7 +272,7 @@ for i in range(0,1):
 		(soc,cp)=rb(infile)#soc:sizeofchunk cp:cutpoint
 		dtail=[]
 		(dtail,clusternum)=disktail(soc)#dtail:掉下的tail clusternum:佔用叢集數
-		checktail(dtail)
+		#checktail(dtail)
 		#print dtail
 
 		#infile.seek(0)#回到檔案一開始,準備切
