@@ -155,7 +155,7 @@ def hashoutput(a,b,c):#a:infile b:sizeofchunk c:cutpoint
 			checkhash=check.split(",")[1]			
 			if checkhash==find:
 				anythesame=1				
-				find=str([0])
+				find=checkhash
 				found=check.split(",")[4]#chunk所在檔案
 				foundstart=check.split(",")[5].split("\n")[0]#所在檔案的起始點
 				break								
