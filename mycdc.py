@@ -113,7 +113,7 @@ def makefile(a,b):#切出檔案 a為要切的檔案,b為cutpoint
 					index=index+1
 					chunk=0
 					f = open('%s-%d.txt' %(a.name.split(".")[0],index-1), 'w')
-	print "cuts:",index
+	#print "cuts:",index
 
 def checktail(dtail):
 	tempsize=0
@@ -156,12 +156,12 @@ def hashoutput(a,b,c):#a:infile b:sizeofchunk c:cutpoint
 			if checkhash==find:
 				anythesame=1				
 				find=checkhash
-				found=check.split(",")[4]#chunk所在檔案
-				foundstart=check.split(",")[5].split("\n")[0]#所在檔案的起始點
+				found=check.split(",")[3]#chunk所在檔案
+				foundstart=check.split(",")[4].split("\n")[0]#所在檔案的起始點
 				break								
 		fo_out.seek(0,2)#回到最下面		
 		if j==0:		
-			fo_out.write(a.name+","+find+",0,"+str(c[j]))
+			fo_out.write(a.name+","+find+","+str(c[j]))
 			if found!="":#有找到一樣				
 				fo_out.write(","+found+","+foundstart)				
 			else:
@@ -169,7 +169,8 @@ def hashoutput(a,b,c):#a:infile b:sizeofchunk c:cutpoint
 				f.write(line)
 				new=c[j]+1;		
 		else:
-			fo_out.write(a.name+","+find+","+str(c[j-1]+1)+","+str(c[j]))
+			#fo_out.write(a.name+","+find+","+str(c[j-1]+1)+","+str(c[j]))
+			fo_out.write(a.name+","+find+","+str(c[j]-c[j-1]))
 			if found!="":#有找到一樣				
 				fo_out.write(","+found+","+foundstart)				
 			else:				
